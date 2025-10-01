@@ -1,36 +1,23 @@
+"use client";
+
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { addProduct } from "@/actions/products";
 
 const AddProductForm = () => {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    category: "",
-    stock: "",
-    rating: "",
-    image: "",
-  });
-
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const formData = new FormData(e.target); // collect from <input name="...">
+
     try {
-      const formData = new FormData(e.target);
       await addProduct(formData);
 
       setMessage("✅ Product added successfully!");
 
-      setFormData({
-        name: "",
-        price: "",
-        category: "",
-        stock: "",
-        rating: "",
-        image: "",
-      });
+      // Reset the form fields
+      e.target.reset();
 
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
@@ -44,53 +31,47 @@ const AddProductForm = () => {
       <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">
         Add New Product
       </h2>
+
       <form className="space-y-4" onSubmit={handleSubmit}>
         <input
           type="text"
+          name="name"
           placeholder="Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
         <input
           type="number"
+          name="price"
           placeholder="Price"
-          value={formData.price}
-          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+          step="0.01"
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
         <input
           type="text"
+          name="category"
           placeholder="Category"
-          value={formData.category}
-          onChange={(e) =>
-            setFormData({ ...formData, category: e.target.value })
-          }
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
         <input
           type="number"
+          name="stock"
           placeholder="Stock"
-          value={formData.stock}
-          onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="number"
           step="0.1"
+          name="rating"
           placeholder="Rating"
-          value={formData.rating}
-          onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="text"
+          name="image"
           placeholder="Image URL"
-          value={formData.image}
-          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
@@ -103,7 +84,11 @@ const AddProductForm = () => {
       </form>
 
       {message && (
-        <div className="mt-4 p-3 text-center text-white rounded-md bg-green-500">
+        <div
+          className={`mt-4 p-3 text-center text-white rounded-md ${
+            message.startsWith("✅") ? "bg-green-500" : "bg-red-500"
+          }`}
+        >
           {message}
         </div>
       )}

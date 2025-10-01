@@ -86,3 +86,26 @@ export async function getUserFromToken(token) {
     return null;
   }
 }
+
+export async function getAllUsers() {
+  const users = await prisma.user.findMany({
+    select: { id: true, name: true, email: true, role: true },
+  });
+  if (!users) throw new Error("No users found");
+  return users;
+}
+
+export async function updateUserRole(id, role) {
+  const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+  if (!user) throw new Error("User not found");
+  return await prisma.user.update({
+    where: { id: Number(id) },
+    data: { role },
+  });
+}
+
+export async function deleteUser(id) {
+  const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+  if (!user) throw new Error("User not found");
+  return await prisma.user.delete({ where: { id: Number(id) } });
+}

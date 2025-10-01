@@ -1,40 +1,38 @@
 "use client";
+import { Edit, Trash2 } from "lucide-react";
+import { deleteProduct, getAllProducts } from "../../../actions/products";
+import { useEffect, useState } from "react";
 
-import React, { useState } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import AddProduct from "./AddProduct";
+export default function Products() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const sampleProducts = [
-  {
-    id: 1,
-    name: "Wireless Headphones",
-    price: 99.99,
-    category: "Electronics",
-    stock: 120,
-    rating: 4.5,
-    image:
-      "https://images.unsplash.com/photo-1518444022037-e4a37f1a1a5c?w=300&h=300",
-  },
-  {
-    id: 2,
-    name: "Sneakers",
-    price: 59.99,
-    category: "Fashion",
-    stock: 80,
-    rating: 4.2,
-    image:
-      "https://images.unsplash.com/photo-1600180758895-16d5aa2d18c6?w=300&h=300",
-  },
-];
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await getAllProducts();
+        setProducts(res);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
 
-const Products = () => {
-  const [products, setProducts] = useState(sampleProducts);
-  const router = useRouter();
-
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      setProducts(products.filter((p) => p.id !== id));
+  const handleDelete = async (id) => {
+    try {
+      const deleted = await deleteProduct(id);
+      if (!deleted) {
+        alert("❌ Failed to delete product");
+      } else {
+        alert("✅ Product deleted successfully");
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("❌ Error deleting product: " + error.message);
     }
   };
 
@@ -66,27 +64,35 @@ const Products = () => {
                 className="border-t hover:bg-gray-50 transition"
               >
                 <td className="p-4">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-400">No Image</span>
+                  )}
                 </td>
                 <td className="p-4 font-medium">{product.name}</td>
                 <td className="p-4">{product.category}</td>
-                <td className="p-4">${product.price.toFixed(2)}</td>
+                <td className="p-4">${Number(product.price).toFixed(2)}</td>
                 <td className="p-4">{product.stock}</td>
-                <td className="p-4">{product.rating} ⭐</td>
+                <td className="p-4">
+                  {product.rating ? `${product.rating} ⭐` : "-"}
+                </td>
                 <td className="p-4 flex gap-3">
                   <button className="text-blue-500 hover:text-blue-700">
                     <Edit size={18} />
                   </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <form action={handleDelete.bind(null, product.id)}>
+                    <button
+                      type="submit"
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </form>
                 </td>
               </tr>
             ))}
@@ -105,6 +111,4 @@ const Products = () => {
       </div>
     </div>
   );
-};
-
-export default Products;
+}
