@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { getAllProducts } from "@/actions/products"; // Your server function
+import Link from "next/link";
 
 const ProductsSection = () => {
   const [products, setProducts] = useState([]);
@@ -17,10 +18,8 @@ const ProductsSection = () => {
     }
     fetchProducts();
   }, []);
-
   const handleBuy = (product) => {
-    // Placeholder: integrate your cart logic here
-    alert(`Added "${product.name}" to cart!`);
+    alert(`Product: ${product.name}\nPrice: $${product.price}`);
   };
 
   return (
@@ -61,12 +60,14 @@ const ProductsSection = () => {
                   </div>
 
                   {/* Buy Button */}
-                  <button
-                    onClick={() => handleBuy(product)}
-                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
-                  >
-                    Buy
-                  </button>
+                  <Link href={`/main/products/${product.id}`}>
+                    <button
+                      onClick={() => handleBuy(product)}
+                      className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+                    >
+                      Buy
+                    </button>
+                  </Link>
                 </div>
               </div>
             ))

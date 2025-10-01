@@ -4,7 +4,11 @@ import { prisma } from "@/prisma/prisma";
 
 export async function getAllProducts() {
   try {
-    const products = await prisma.product.findMany();
+    const products = await prisma.product.findMany({
+      orderBy: {
+        id: "desc",
+      },
+    });
     return products;
   } catch (error) {
     console.error("Error fetching products:", error);

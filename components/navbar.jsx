@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getUserFromToken } from "@/actions/user"; 
+import { getUserFromToken } from "@/actions/user";
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
@@ -34,7 +34,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    document.cookie = "token=; path=/; max-age=0"; 
+    document.cookie = "token=; path=/; max-age=0";
     setUser(null);
     router.push("/auth/login");
   };
@@ -57,7 +57,7 @@ const Navbar = () => {
               </Link>
             )}
             <Link
-              href="/cart"
+              href="/main/cart"
               className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
             >
               Cart
