@@ -20,11 +20,18 @@ export async function addToCart(userId, productId, quantity = 1) {
 
 export async function getUserCart(userId) {
   if (!userId) return [];
-  return prisma.cart.findMany({
-    where: { userId },
-    include: { product: true },
-    orderBy: { createdAt: "desc" },
+
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userId) },
+    include: {
+      cart: {
+        include: { product: true },
+        orderBy: { createdAt: "desc" },
+      },
+    },
   });
+
+  return user?.cart || [];
 }
 
 export async function removeFromCart(cartId) {
