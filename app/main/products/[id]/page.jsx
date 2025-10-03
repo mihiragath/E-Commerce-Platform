@@ -3,12 +3,10 @@ import { prisma } from "@/prisma/prisma";
 export default async function ProductPage({ params }) {
   const productId = Number(params?.id);
 
-  // ✅ Fetch product safely
   const product = await prisma.product.findUnique({
     where: { id: productId },
   });
 
-  // ✅ If product not found
   if (!product) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -17,6 +15,10 @@ export default async function ProductPage({ params }) {
         </p>
       </div>
     );
+  }
+
+  const handleSubmit = () => {
+    
   }
 
   return (
@@ -58,6 +60,7 @@ export default async function ProductPage({ params }) {
           <form action={`/main/cart`} method="POST">
             <input type="hidden" name="productId" value={product.id} />
             <button
+              onClick={handleSubmit}
               type="submit"
               className="mt-6 w-40 bg-blue-600 text-white py-3 rounded-lg shadow-lg hover:bg-blue-700 transition transform hover:scale-105"
             >
