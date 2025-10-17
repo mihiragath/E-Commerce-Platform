@@ -3,18 +3,27 @@
 import { prisma } from "@/prisma/prisma";
 
 export async function addToCart(userId, productId, quantity = 1) {
-  if (!userId || !productId) throw new Error("Invalid input");
+  if (!userId || !productId) {
+    throw new Error("Invalid input: userId and productId are required.");
+  }
 
-  const existingCart = await prisma.cart.findFirst({
+  const existingCart = await prisma.cart.findUnique({
     where: {
-      userId: Number(userId),
-      productId: Number(productId),
+      userId_productId: {
+        userId: Number(userId),
+        productId: Number(productId),
+      },
     },
   });
 
   if (existingCart) {
     return prisma.cart.update({
-      where: { id: existingCart.id },
+      where: {
+        userId_productId: {
+          userId: Number(userId),
+          productId: Number(productId),
+        },
+      },
       data: { quantity: existingCart.quantity + quantity },
     });
   }
