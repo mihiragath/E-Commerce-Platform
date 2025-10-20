@@ -30,16 +30,13 @@ export default function ProductDetails({ product, currentUser }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
       <header className="bg-blue-600 text-white py-6 shadow-md">
         <div className="max-w-7xl mx-auto px-6">
           <h1 className="text-3xl font-bold">Product Details</h1>
         </div>
       </header>
 
-      {/* Main Section */}
       <main className="flex-1 max-w-7xl mx-auto px-6 py-12 flex flex-col lg:flex-row gap-12">
-        {/* Product Image */}
         <div className="lg:w-1/2 flex justify-center items-center">
           <img
             src={product?.image || "https://via.placeholder.com/600x500"}
@@ -48,7 +45,6 @@ export default function ProductDetails({ product, currentUser }) {
           />
         </div>
 
-        {/* Product Details */}
         <div className="lg:w-1/2 flex flex-col justify-center gap-6">
           <h2 className="text-4xl font-extrabold text-gray-900">
             {product?.name || "Unnamed Product"}

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -19,9 +13,9 @@ model User {
   email     String   @unique
   name      String?
   password  String
-  role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  role      Role     @default(USER)
   cart      Cart[]
   orders    Order[]
 }
@@ -36,9 +30,8 @@ model Product {
   image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  cart   Cart[]
-  orders Order[]
+  cart      Cart[]
+  orders    Order[]
 }
 
 model Order {
@@ -50,22 +43,20 @@ model Order {
   status     Status   @default(PENDING)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([productId])
 }
 
 model Cart {
-  id        Int @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   userId    Int
   productId Int
-  quantity  Int @default(1)
-
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+  product   Product @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
 
   @@unique([userId, productId])
 }

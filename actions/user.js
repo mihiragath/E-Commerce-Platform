@@ -1,14 +1,19 @@
 "use server";
 
-import { prisma } from "@/prisma/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret";
 
+async function getPrisma() {
+  const mod = await import("@/prisma/prisma");
+  return mod.prisma;
+}
+
 export async function createUser({ email, name, password }) {
   if (!email || !password) throw new Error("Email and password are required");
 
+  const prisma = await getPrisma();
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) throw new Error("User already exists");
 
@@ -38,6 +43,7 @@ export async function createUser({ email, name, password }) {
 export async function authenticateUser({ email, password }) {
   if (!email || !password) throw new Error("Email and password are required");
 
+  const prisma = await getPrisma();
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error("Invalid email or password");
 
@@ -60,6 +66,7 @@ export async function getCurrentUser(token) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    const prisma = await getPrisma();
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
     });
@@ -76,6 +83,7 @@ export async function getUserFromToken(token) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    const prisma = await getPrisma();
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true, name: true, role: true },
@@ -88,6 +96,7 @@ export async function getUserFromToken(token) {
 }
 
 export async function getAllUsers() {
+  const prisma = await getPrisma();
   const users = await prisma.user.findMany({
     select: { id: true, name: true, email: true, role: true },
   });
@@ -96,6 +105,7 @@ export async function getAllUsers() {
 }
 
 export async function updateUserRole(id, role) {
+  const prisma = await getPrisma();
   const user = await prisma.user.findUnique({ where: { id: Number(id) } });
   if (!user) throw new Error("User not found");
   return await prisma.user.update({
@@ -105,6 +115,7 @@ export async function updateUserRole(id, role) {
 }
 
 export async function deleteUser(id) {
+  const prisma = await getPrisma();
   const user = await prisma.user.findUnique({ where: { id: Number(id) } });
   if (!user) throw new Error("User not found");
   return await prisma.user.delete({ where: { id: Number(id) } });

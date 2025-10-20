@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Edit, Trash, X } from "lucide-react";
+import getOrder from "../../../actions/order";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -9,31 +10,24 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [newStatus, setNewStatus] = useState("");
 
-  // Dummy data (replace with API call later)
   useEffect(() => {
-    setOrders([
-      {
-        id: 101,
-        customer: "John Doe",
-        product: "Laptop",
-        amount: 1200,
-        status: "Pending",
-      },
-      {
-        id: 102,
-        customer: "Jane Smith",
-        product: "Phone",
-        amount: 800,
-        status: "Shipped",
-      },
-      {
-        id: 103,
-        customer: "Alex Brown",
-        product: "Headphones",
-        amount: 150,
-        status: "Delivered",
-      },
-    ]);
+    const fetchOrders = async () => {
+      try {
+        const data = await getOrder();
+        setOrders(
+          data.map((item) => ({
+            id: item.id,
+            customer: item.user?.name || "Unknown",
+            product: item.product?.name || "Unknown",
+            amount: item.totalPrice,
+            status: item.status,
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      }
+    };
+    fetchOrders();
   }, []);
 
   const handleEdit = (order) => {
@@ -104,7 +98,6 @@ const Orders = () => {
         </table>
       </div>
 
-      {/* Edit Status Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-80 relative">
@@ -118,7 +111,6 @@ const Orders = () => {
             <p className="mb-2">
               {selectedOrder?.customer} - {selectedOrder?.product}
             </p>
-
             <select
               className="w-full border px-3 py-2 rounded mb-4"
               value={newStatus}
@@ -129,7 +121,6 @@ const Orders = () => {
               <option value="Delivered">Delivered</option>
               <option value="Cancelled">Cancelled</option>
             </select>
-
             <div className="flex justify-end gap-2">
               <button
                 className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"

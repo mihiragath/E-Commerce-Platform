@@ -1,30 +1,35 @@
-import { prisma } from "@/prisma/prisma";
 import { cookies } from "next/headers";
 import { getUserFromToken } from "../../../../actions/user";
 import ProductDetails from "./ProductDetails";
 
 export default async function ProductPage({ params }) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   if (!token) {
     return (
       <p className="text-center mt-10 text-gray-500">
-        Please login to view your cart.
+        Please login to view this page.
       </p>
     );
   }
 
-  const currentUser = await getUserFromToken(token);
-  if (!currentUser) {
+  const user = await getUserFromToken(token);
+  if (!user) {
     return (
       <p className="text-center mt-10 text-red-500">
-        Invalid or expired user session.
+        Invalid or expired session. Please log in again.
       </p>
     );
   }
 
-  const productId = Number(params?.id);
+  const productId = Number((await params).id);
+  if (isNaN(productId)) {
+    return (
+      <p className="text-center mt-10 text-red-500">Invalid product ID.</p>
+    );
+  }
+
   const product = await prisma.product.findUnique({
     where: { id: productId },
   });
@@ -39,5 +44,7 @@ export default async function ProductPage({ params }) {
     );
   }
 
-  return <ProductDetails product={product} currentUser={currentUser} />;
+  return (
+    <ProductDetails product={product} currentUser={{ id: Number(user.id) }} />
+  );
 }

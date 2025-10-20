@@ -4,15 +4,37 @@ import { prisma } from "@/prisma/prisma";
 
 export async function getAllProducts() {
   try {
+    if (!prisma) {
+      throw new Error("Prisma client is not initialized");
+    }
+
     const products = await prisma.product.findMany({
       orderBy: {
-        id: "desc",
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        category: true,
+        stock: true,
+        rating: true,
+        image: true,
+        createdAt: true,
       },
     });
+
+    if (!products) {
+      throw new Error("No products returned from database");
+    }
+
     return products;
   } catch (error) {
     console.error("Error fetching products:", error);
-    throw new Error("Failed to fetch products");
+    if (error instanceof Error) {
+      throw new Error(`Failed to fetch products: ${error.message}`);
+    }
+    throw new Error("Failed to fetch products: Unknown error");
   }
 }
 
