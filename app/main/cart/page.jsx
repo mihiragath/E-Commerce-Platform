@@ -87,7 +87,6 @@ export default async function CartPage() {
         </div>
 
         <PaymentButton
-          userId={currentUser.id}
           cartItems={cartItems}
           totalAmount={totalAmount}
         />
