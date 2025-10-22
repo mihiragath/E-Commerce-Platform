@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { getUserOrders } from "@/actions/order";
+import { getUserOrders, cancelOrder } from "@/actions/order";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function OrdersPage() {
@@ -37,6 +37,24 @@ export default function OrdersPage() {
   if (userError) return <p className="p-6 text-red-500">{userError}</p>;
   if (orderError) return <p className="p-6 text-red-500">{orderError}</p>;
 
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const cancelled = await cancelOrder(orderId);
+      if (cancelled) {
+        setUserOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === orderId ? { ...order, status: "CANCELLED" } : order
+          )
+        );
+      } else {
+        alert("Failed to cancel the order. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error cancelling order:", err);
+      alert("Failed to cancel the order. Please try again.");
+    }
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Your Orders</h1>
@@ -49,21 +67,31 @@ export default function OrdersPage() {
           <h2 className="text-xl font-semibold mb-2">
             {order.product?.name || "Unnamed Product"}
           </h2>
-          <p className="text-gray-600">Price: ${order.product?.price}</p>
+          <p className="text-gray-600">
+            Price: ${order.product?.price?.toFixed(2) || 0}
+          </p>
           <p className="text-gray-600">Quantity: {order.quantity}</p>
           <p
             className={`font-semibold ${
-              order.status === "Delivered"
+              order.status === "DELIVERED"
                 ? "text-green-600"
-                : order.status === "Pending"
+                : order.status === "PENDING"
                 ? "text-yellow-600"
-                : order.status === "Cancelled"
+                : order.status === "CANCELLED"
                 ? "text-red-600"
                 : "text-blue-600"
             }`}
           >
             Status: {order.status}
           </p>
+          {order.status === "PENDING" && (
+            <button
+              onClick={() => handleCancelOrder(order.id)}
+              className="mt-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+            >
+              Cancel Order
+            </button>
+          )}
         </div>
       ))}
     </div>

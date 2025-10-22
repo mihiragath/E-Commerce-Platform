@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import createOrder from "@/actions/order";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
@@ -8,6 +9,8 @@ export default function PaymentButton({ cartItems, totalAmount }) {
   const { currentUser, loadingUser, userError } = useCurrentUser();
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const router = useRouter();
 
   const handlePayment = async () => {
     if (!currentUser) {
@@ -37,6 +40,10 @@ export default function PaymentButton({ cartItems, totalAmount }) {
       if (!res) throw new Error("Can't create order right now");
 
       setSuccess(true);
+
+      setTimeout(() => {
+        router.push("/main/orders");
+      }, 2000);
     } catch (err) {
       console.error("❌ Payment error:", err);
       alert("Failed to place order.");
@@ -65,7 +72,7 @@ export default function PaymentButton({ cartItems, totalAmount }) {
   if (success)
     return (
       <div className="mt-6 p-4 bg-green-100 text-green-800 font-semibold rounded-lg text-center">
-        🎉 Order placed successfully! Total Paid: ${totalAmount.toFixed(2)}
+        🎉 Order placed successfully! Redirecting to your orders...
       </div>
     );
 

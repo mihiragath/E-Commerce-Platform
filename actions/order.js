@@ -142,3 +142,16 @@ export async function getAllOrders() {
     throw new Error("Failed to fetch orders");
   }
 }
+
+export async function cancelOrder(orderId) {
+  try {
+    const canceledOrder = await prisma.order.update({
+      where: { id: Number(orderId) },
+      data: { status: "CANCELED" },
+    });
+    return canceledOrder;
+  } catch (error) {
+    console.error("❌ Error canceling order:", error);
+    throw new Error("Failed to cancel order");
+  }
+}
