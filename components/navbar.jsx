@@ -62,6 +62,12 @@ const Navbar = () => {
             >
               Cart
             </Link>
+            <Link
+              href="/main/orders"
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              Orders
+            </Link>
             <button
               onClick={handleLogout}
               className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"

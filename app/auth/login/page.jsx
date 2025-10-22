@@ -11,7 +11,7 @@ const LoginPage = () => {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setMessage(""); // clear previous messages
+    setMessage("");
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email");
@@ -20,14 +20,12 @@ const LoginPage = () => {
     try {
       const response = await authenticateUser({ email, password });
 
-      // Save JWT token in cookie for session persistence
       if (response.token) {
         document.cookie = `token=${response.token}; path=/; max-age=3600`;
       }
 
       setMessage(response.message);
 
-      // Redirect to home or dashboard after successful login
       if (response.user && response.user.id) {
         router.push("/");
       }

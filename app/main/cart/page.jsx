@@ -1,34 +1,50 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { getUserCart } from "@/actions/cart";
-import { getUserFromToken } from "@/actions/user";
-import { cookies } from "next/headers";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import RemoveButton from "./_components/RemoveButton";
 import UpdateButton from "./_components/UpdateButton";
 import PaymentButton from "./_components/PaymentButton";
 
-export default async function CartPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
+export default function CartPage() {
+  const { currentUser, loadingUser, userError } = useCurrentUser();
+  const [cartItems, setCartItems] = useState([]);
+  const [loadingCart, setLoadingCart] = useState(true);
+  const [cartError, setCartError] = useState("");
 
-  if (!token)
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (!currentUser) return;
+
+      try {
+        const items = await getUserCart(currentUser.id);
+        if (!items || items.length === 0) {
+          setCartError("Your cart is empty.");
+        } else {
+          setCartItems(items);
+        }
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+        setCartError(err.message || "Failed to load cart.");
+      } finally {
+        setLoadingCart(false);
+      }
+    };
+
+    fetchCart();
+  }, [currentUser]);
+
+  if (loadingUser || loadingCart)
     return (
-      <p className="text-center mt-10 text-gray-500">
-        Please login to view your cart.
-      </p>
+      <p className="text-center mt-10 text-gray-500">Loading your cart...</p>
     );
 
-  const currentUser = await getUserFromToken(token);
-  if (!currentUser)
-    return (
-      <p className="text-center mt-10 text-red-500">
-        Invalid or expired user session.
-      </p>
-    );
+  if (userError)
+    return <p className="text-center mt-10 text-red-500">{userError}</p>;
 
-  const cartItems = await getUserCart(currentUser.id);
-  if (!cartItems?.length)
-    return (
-      <p className="text-center mt-10 text-gray-500">Your cart is empty.</p>
-    );
+  if (cartError)
+    return <p className="text-center mt-10 text-gray-500">{cartError}</p>;
 
   const subtotal = cartItems.reduce(
     (total, item) => total + (item.product?.price || 0) * item.quantity,
@@ -69,7 +85,7 @@ export default async function CartPage() {
         ))}
       </div>
 
-      <div>
+      <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4">Payment Summary</h2>
         <div className="space-y-2">
           <div className="flex justify-between">
@@ -86,10 +102,7 @@ export default async function CartPage() {
           </div>
         </div>
 
-        <PaymentButton
-          cartItems={cartItems}
-          totalAmount={totalAmount}
-        />
+        <PaymentButton cartItems={cartItems} totalAmount={totalAmount} />
       </div>
     </div>
   );

@@ -1,39 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import createOrder from "../../../../actions/order";
-import { getUserFromToken } from "../../../../actions/user";
+import { useState } from "react";
+import createOrder from "@/actions/order";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function PaymentButton({ cartItems, totalAmount }) {
+  const { currentUser, loadingUser, userError } = useCurrentUser();
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("token="))
-          ?.split("=")[1];
-        if (!token) {
-          setIsLoading(false);
-          return;
-        }
-
-        const user = await getUserFromToken(token);
-        console.log("Fetched User:", user);
-        setCurrentUser(user);
-      } catch (err) {
-        console.error("Error fetching user:", err);
-        setCurrentUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const handlePayment = async () => {
     if (!currentUser) {
@@ -56,32 +30,35 @@ export default function PaymentButton({ cartItems, totalAmount }) {
         }))
         .filter((i) => i.productId);
 
-      console.log("User ID:", currentUser.id);
-      console.log("Items:", itemsToSend);
+      console.log("🧾 User ID:", currentUser.id);
+      console.log("🛒 Items:", itemsToSend);
 
       const res = await createOrder(currentUser.id, itemsToSend);
       if (!res) throw new Error("Can't create order right now");
 
       setSuccess(true);
     } catch (err) {
-      console.error("Payment error:", err);
+      console.error("❌ Payment error:", err);
       alert("Failed to place order.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  if (isLoading)
+  if (loadingUser)
     return (
       <p className="text-center mt-10 text-gray-500">
         Checking user session...
       </p>
     );
 
+  if (userError)
+    return <p className="text-center mt-10 text-red-500">{userError}</p>;
+
   if (!currentUser)
     return (
       <p className="text-center mt-10 text-gray-500">
-        Please login to view your cart.
+        Please login to continue.
       </p>
     );
 

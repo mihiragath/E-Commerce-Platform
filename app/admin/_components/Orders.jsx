@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Edit, Trash, X } from "lucide-react";
-import getOrder from "../../../actions/order";
+import {
+  deleteOrder,
+  getAllOrders,
+  updateOrderStatus,
+} from "../../../actions/order";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -13,7 +17,7 @@ const Orders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const data = await getOrder();
+        const data = await getAllOrders();
         setOrders(
           data.map((item) => ({
             id: item.id,
@@ -31,24 +35,46 @@ const Orders = () => {
   }, []);
 
   const handleEdit = (order) => {
+    if (!order?.id) return;
     setSelectedOrder(order);
     setNewStatus(order.status);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this order?")) {
+  const handleDelete = async (id) => {
+    if (!id || !confirm("Are you sure you want to delete this order?")) return;
+
+    try {
+      await deleteOrder(id);
       setOrders(orders.filter((order) => order.id !== id));
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      alert("An error occurred while deleting the order.");
     }
   };
+  const handleSave = async () => {
+    try {
+      const updated = await updateOrderStatus(selectedOrder.id, newStatus);
 
-  const handleSave = () => {
-    setOrders(
-      orders.map((order) =>
-        order.id === selectedOrder.id ? { ...order, status: newStatus } : order
-      )
-    );
-    setIsModalOpen(false);
+      if (!updated) {
+        console.error("Update failed — no response from server");
+        alert("Failed to update order status");
+        return;
+      }
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === selectedOrder.id
+            ? { ...order, status: updated.status }
+            : order
+        )
+      );
+
+      alert("Order status updated successfully!");
+    } catch (err) {
+      console.error("❌ Error updating order:", err);
+      alert("Something went wrong while updating order status");
+    }
   };
 
   return (
@@ -116,10 +142,11 @@ const Orders = () => {
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
             >
-              <option value="Pending">Pending</option>
-              <option value="Shipped">Shipped</option>
-              <option value="Delivered">Delivered</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="">Select Status</option>
+              <option value="PENDING">PENDING</option>
+              <option value="SHIPPED">SHIPPED</option>
+              <option value="DELIVERED">DELIVERED</option>
+              <option value="CANCELED">CANCELED</option>
             </select>
             <div className="flex justify-end gap-2">
               <button

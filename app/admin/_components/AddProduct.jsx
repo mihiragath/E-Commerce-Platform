@@ -9,14 +9,13 @@ const AddProductForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target); // collect from <input name="...">
+    const formData = new FormData(e.target); 
 
     try {
       await addProduct(formData);
 
       setMessage("✅ Product added successfully!");
 
-      // Reset the form fields
       e.target.reset();
 
       setTimeout(() => setMessage(""), 3000);
