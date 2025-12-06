@@ -2,13 +2,20 @@
 
 import { prisma } from "@/prisma/prisma";
 
-export async function getAllProducts() {
+export async function getAllProducts(page = 1, limit = 10) {
   try {
     if (!prisma) {
       throw new Error("Prisma client is not initialized");
     }
 
+    const currentPage = Math.max(1, Number(page));
+    const pageSize = Math.max(1, Number(limit));
+
+    const skip = (currentPage - 1) * pageSize;
+
     const products = await prisma.product.findMany({
+      skip: skip,
+      take: pageSize,
       orderBy: {
         createdAt: "desc",
       },
@@ -24,17 +31,19 @@ export async function getAllProducts() {
       },
     });
 
-    if (!products) {
-      throw new Error("No products returned from database");
-    }
+    const totalCount = await prisma.product.count();
+    const totalPages = Math.ceil(totalCount / pageSize);
 
-    return products;
+    return {
+      page: currentPage,
+      limit: pageSize,
+      totalCount,
+      totalPages,
+      products,
+    };
   } catch (error) {
-    console.error("Error fetching products:", error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to fetch products: ${error.message}`);
-    }
-    throw new Error("Failed to fetch products: Unknown error");
+    console.error("Error fetching paged products:", error);
+    throw new Error(error instanceof Error ? error.message : "Unknown error");
   }
 }
 

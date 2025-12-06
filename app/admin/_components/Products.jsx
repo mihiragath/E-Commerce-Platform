@@ -6,12 +6,20 @@ import { useEffect, useState } from "react";
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await getAllProducts();
-        setProducts(res);
+        const res = await getAllProducts(page, limit);
+        // API returns an object with paging info; fall back if older shape
+        const items = Array.isArray(res) ? res : res.products;
+        setProducts(items || []);
+        if (res && typeof res.totalPages === "number") {
+          setTotalPages(res.totalPages);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -19,7 +27,7 @@ export default function Products() {
       }
     }
     fetchProducts();
-  }, []);
+  }, [page, limit]);
 
   const handleDelete = async (id) => {
     try {
@@ -28,6 +36,7 @@ export default function Products() {
         alert("❌ Failed to delete product");
       } else {
         alert("✅ Product deleted successfully");
+        // update local list; UI also refreshes on page change
         setProducts((prev) => prev.filter((p) => p.id !== id));
       }
     } catch (error) {
