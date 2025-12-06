@@ -39,6 +39,9 @@ export async function GET(req) {
     });
   } catch (error) {
     console.error("API /api/products error:", error);
-    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || String(error) },
+      { status: 500 }
+    );
   }
 }
