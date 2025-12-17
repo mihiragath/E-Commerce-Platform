@@ -49,7 +49,6 @@ export default function ProductsSection() {
 
   useEffect(() => {
     fetchProducts(1, limit);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleBuy(product) {
@@ -74,7 +73,6 @@ export default function ProductsSection() {
     fetchProducts(1, newLimit);
   }
 
-  // simple page buttons
   function renderPageButtons() {
     var pages = [];
     var start = Math.max(1, page - 2);
@@ -140,6 +138,7 @@ export default function ProductsSection() {
               onChange={handleLimitChange}
               className="border rounded px-2 py-1"
             >
+              <option value={4}>4</option>
               <option value={6}>6</option>
               <option value={10}>10</option>
               <option value={12}>12</option>
