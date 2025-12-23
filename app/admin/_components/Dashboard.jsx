@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,6 +11,8 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { getAllUsers } from "../../../actions/user";
+import { getAllOrders } from "../../../actions/order";
 
 ChartJS.register(
   CategoryScale,
@@ -21,7 +23,7 @@ ChartJS.register(
   Legend
 );
 
-const Dashboard = () => {
+export default function Dashboard() {
   const [stats, setStats] = useState({
     users: 0,
     orders: 0,
@@ -33,47 +35,61 @@ const Dashboard = () => {
     datasets: [],
   });
 
-  // Dummy data (replace with API later)
-  useEffect(() => {
-    setStats({
-      users: 120,
-      orders: 80,
-      revenue: 15000,
-    });
+  const [loading, setLoading] = useState(true);
 
-    setOrdersData({
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-      datasets: [
-        {
-          label: "Orders",
-          data: [12, 19, 15, 22, 18, 25],
-          backgroundColor: "rgba(59, 130, 246, 0.7)",
-        },
-      ],
-    });
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const users = await getAllUsers();
+        const orders = await getAllOrders();
+
+        const totalRevenue = orders.reduce(
+          (sum, order) => sum + (order.totalAmount || 0),
+          0
+        );
+
+        setStats({
+          users: users.length,
+          orders: orders.length,
+          revenue: totalRevenue,
+        });
+
+        setOrdersData({
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          datasets: [
+            {
+              label: "Orders",
+              data: [12, 19, 15, 22, 18, 25],
+              backgroundColor: "rgba(59, 130, 246, 0.7)",
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-600">Loading dashboard...</div>
+    );
+  }
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-gray-600 text-sm uppercase mb-2">Total Users</h2>
-          <p className="text-2xl font-bold text-gray-800">{stats.users}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-gray-600 text-sm uppercase mb-2">Total Orders</h2>
-          <p className="text-2xl font-bold text-gray-800">{stats.orders}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-gray-600 text-sm uppercase mb-2">Revenue ($)</h2>
-          <p className="text-2xl font-bold text-gray-800">{stats.revenue}</p>
-        </div>
+        <StatCard title="Total Users" value={stats.users} />
+        <StatCard title="Total Orders" value={stats.orders} />
+        <StatCard title="Revenue ($)" value={stats.revenue} />
       </div>
 
-      {/* Orders Chart */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-gray-700 font-semibold mb-4">Monthly Orders</h2>
         <Bar
@@ -86,6 +102,13 @@ const Dashboard = () => {
       </div>
     </div>
   );
-};
+}
 
-export default Dashboard;
+function StatCard({ title, value }) {
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-gray-600 text-sm uppercase mb-2">{title}</h2>
+      <p className="text-2xl font-bold text-gray-800">{value}</p>
+    </div>
+  );
+}
