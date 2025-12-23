@@ -1,37 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authenticateUser } from "@/actions/user";
 import Link from "next/link";
+import { authenticateUser } from "@/actions/user";
 
-const LoginPage = () => {
-  const [message, setMessage] = useState("");
+export default function LoginPage() {
   const router = useRouter();
+
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email");
-    const password = formData.get("password");
+    setLoading(true);
 
     try {
+      const formData = new FormData(e.currentTarget);
+      const email = formData.get("email");
+      const password = formData.get("password");
+
       const response = await authenticateUser({ email, password });
 
-      if (response.token) {
+      if (response?.token) {
         document.cookie = `token=${response.token}; path=/; max-age=3600`;
       }
 
-      setMessage(response.message);
+      setMessage(response?.message || "Login successful");
 
-      if (response.user && response.user.id) {
+      if (response?.user?.id) {
         router.push("/");
       }
     } catch (error) {
-      setMessage(error.message || "Something went wrong");
       console.error(error);
+      setMessage(error?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -52,7 +57,8 @@ const LoginPage = () => {
               id="email"
               name="email"
               required
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              disabled={loading}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-400 disabled:opacity-60"
             />
           </div>
 
@@ -65,15 +71,21 @@ const LoginPage = () => {
               id="password"
               name="password"
               required
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              disabled={loading}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-400 disabled:opacity-60"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+            disabled={loading}
+            className={`w-full py-2 rounded-md text-white transition-colors ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
+            }`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -93,6 +105,4 @@ const LoginPage = () => {
       </div>
     </div>
   );
-};
-
-export default LoginPage;
+}

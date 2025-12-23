@@ -89,3 +89,37 @@ export async function deleteProduct(id) {
   if (!product) throw new Error("Product not found");
   return await prisma.product.delete({ where: { id: Number(id) } });
 }
+
+export async function getPaginatedProducts(page = 1, pageSize = 10) {
+  const skip = (Math.max(1, Number(page)) - 1) * Math.max(1, Number(pageSize));
+  const take = Math.max(1, Number(pageSize));
+
+  const [products, totalCount] = await Promise.all([
+    prisma.product.findMany({
+      skip,
+      take,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        category: true,
+        stock: true,
+        rating: true,
+        image: true,
+        createdAt: true,
+      },
+    }),
+    prisma.product.count(),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / take));
+
+  return {
+    page: Number(page),
+    limit: take,
+    totalCount,
+    totalPages,
+    data: products,
+  };
+}

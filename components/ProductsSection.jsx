@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { getPaginatedProducts } from "@/actions/products";
 
 export default function ProductsSection() {
   const [products, setProducts] = useState([]);
@@ -17,26 +18,31 @@ export default function ProductsSection() {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`/api/products?page=${p}&limit=${l}`, {
-        cache: "no-store",
-      });
+      // Support both server-action returning plain data and Response-like objects
+      const res = await getPaginatedProducts(p, l);
 
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(
-          txt || `Failed to fetch products (status ${res.status})`
-        );
+      let data;
+      // If it's a Fetch Response-like object
+      if (res && typeof res === "object" && typeof res.ok === "boolean") {
+        if (!res.ok)
+          throw new Error(`Failed to fetch products (status ${res.status})`);
+        data = typeof res.json === "function" ? await res.json() : res;
+      } else {
+        // Assume it's already the data object returned by the server action
+        data = res || {};
       }
 
-      const data = await res.json();
+      const productsList = data.products || data.data || [];
+      const pageVal = data.page || p;
+      const limitVal = data.limit || l;
+      const totalCountVal = data.totalCount || data.total_count || 0;
 
-      setProducts(data.products || []);
-      setPage(data.page || p);
-      setLimit(data.limit || l);
-      setTotalCount(data.totalCount || 0);
+      setProducts(productsList);
+      setPage(pageVal);
+      setLimit(limitVal);
+      setTotalCount(totalCountVal);
       setTotalPages(
-        data.totalPages ||
-          Math.max(1, Math.ceil((data.totalCount || 0) / (data.limit || l)))
+        data.totalPages || Math.max(1, Math.ceil(totalCountVal / limitVal))
       );
     } catch (err) {
       console.error("Error fetching products:", err);
