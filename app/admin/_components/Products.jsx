@@ -14,7 +14,6 @@ export default function Products() {
     async function fetchProducts() {
       try {
         const res = await getAllProducts(page, limit);
-        // API returns an object with paging info; fall back if older shape
         const items = Array.isArray(res) ? res : res.products;
         setProducts(items || []);
         if (res && typeof res.totalPages === "number") {
@@ -36,7 +35,6 @@ export default function Products() {
         alert("❌ Failed to delete product");
       } else {
         alert("✅ Product deleted successfully");
-        // update local list; UI also refreshes on page change
         setProducts((prev) => prev.filter((p) => p.id !== id));
       }
     } catch (error) {
@@ -47,12 +45,10 @@ export default function Products() {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Products</h1>
       </div>
 
-      {/* Products Table */}
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100 text-gray-700">
