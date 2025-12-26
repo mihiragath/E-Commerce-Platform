@@ -12,23 +12,21 @@ export default function ProductsSection() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loadingBuy, setLoadingBuy] = useState(false);
 
   async function fetchProducts(p = page, l = limit) {
     try {
       setLoading(true);
       setError(null);
 
-      // Support both server-action returning plain data and Response-like objects
       const res = await getPaginatedProducts(p, l);
 
       let data;
-      // If it's a Fetch Response-like object
       if (res && typeof res === "object" && typeof res.ok === "boolean") {
         if (!res.ok)
           throw new Error(`Failed to fetch products (status ${res.status})`);
         data = typeof res.json === "function" ? await res.json() : res;
       } else {
-        // Assume it's already the data object returned by the server action
         data = res || {};
       }
 
@@ -57,11 +55,11 @@ export default function ProductsSection() {
     fetchProducts(1, limit);
   }, []);
 
-  function handleBuy(product) {
-    alert(
-      `Product: ${product.name}\nPrice: $${(product.price || 0).toFixed(2)}`
-    );
-  }
+  // function handleBuy(product) {
+  //   alert(
+  //     `Product: ${product.name}\nPrice: $${(product.price || 0).toFixed(2)}`
+  //   );
+  // }
 
   function goPrev() {
     if (page <= 1) return;
@@ -208,10 +206,11 @@ export default function ProductsSection() {
                       <div className="mt-4">
                         <Link href={"/main/products/" + product.id}>
                           <button
-                            onClick={() => handleBuy(product)}
+                            // onClick={() => handleBuy(product)}
+                            onClick={() => setLoadingBuy(true)}
                             className="w-full bg-blue-600 text-white py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
                           >
-                            Buy
+                            {loadingBuy ? "Buying..." : "Buy"}
                           </button>
                         </Link>
                       </div>
